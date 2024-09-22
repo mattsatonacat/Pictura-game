@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pictura - Daily Landmark Guessing Game</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Pictura</h1>
+        <p>Guess the landmark from the revealed image. Use your credits to uncover more!</p>
+        
+        <canvas id="picturaCanvas" width="500" height="500"></canvas>
+        
+        <div class="controls">
+            <button id="revealButton">Reveal a Section</button>
+        </div>
+        
+        <div class="guess-section">
+            <input type="text" id="guessInput" placeholder="Enter your guess here">
+            <button id="submitGuess">Submit Guess</button>
+        </div>
+        
+        <div id="feedback"></div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
