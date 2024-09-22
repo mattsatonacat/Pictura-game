@@ -27,6 +27,12 @@ const countries = {
     "canada": { lat: 56.1304, lng: -106.3468 },
     "usa": { lat: 37.0902, lng: -95.7129 },
     "mexico": { lat: 23.6345, lng: -102.5528 },
+    "japan": { lat: 36.2048, lng: 138.2529 },
+    "china": { lat: 35.8617, lng: 104.1954 },
+    "brazil": { lat: -14.2350, lng: -51.9253 },
+    "argentina": { lat: -38.4161, lng: -63.6167 },
+    "russia": { lat: 61.5240, lng: 105.3188 },
+    "india": { lat: 20.5937, lng: 78.9629 },
     // Add more countries as needed
 };
 
@@ -34,16 +40,14 @@ const correctCountry = landmark.country.toLowerCase();
 
 const canvas = document.getElementById('picturaCanvas');
 const ctx = canvas.getContext('2d');
-const revealButton = document.getElementById('revealButton');
 const submitGuessButton = document.getElementById('submitGuess');
 const guessInput = document.getElementById('guessInput');
 const feedback = document.getElementById('feedback');
-const countryInfo = document.getElementById('countryInfo');
 
 // Grid configuration
 const gridRows = 3;
 const gridCols = 3;
-const gridSize = canvas.width / gridCols; // Adjust grid size based on canvas width
+const gridSize = canvas.width / gridCols; // 100 pixels for 3x3 grid
 
 // Track revealed sections
 let revealedSections = Array(gridRows * gridCols).fill(false);
@@ -66,7 +70,7 @@ function pixelateImage() {
     const imageData = ctx.getImageData(0, 0, width, height);
     const data = imageData.data;
 
-    // Simple pixelation by averaging colors in grid blocks
+    // Pixelate by averaging colors in grid blocks
     for (let y = 0; y < height; y += gridSize) {
         for (let x = 0; x < width; x += gridSize) {
             const rgb = getAverageColor(x, y, gridSize, gridSize, data, width, height);
@@ -100,25 +104,15 @@ function fillBlock(x, y, w, h, rgb) {
     ctx.fillRect(x, y, w, h);
 }
 
-// Function to reveal a random unrevealed section
-function revealSection() {
-    const unrevealed = [];
-    for (let i = 0; i < revealedSections.length; i++) {
-        if (!revealedSections[i]) {
-            unrevealed.push(i);
-        }
-    }
-
-    if (unrevealed.length === 0) {
-        alert("All sections revealed!");
+// Function to reveal a specific grid section
+function revealSection(row, col) {
+    const index = row * gridCols + col;
+    if (revealedSections[index]) {
+        // Already revealed
         return;
     }
+    revealedSections[index] = true;
 
-    const randomIndex = unrevealed[Math.floor(Math.random() * unrevealed.length)];
-    revealedSections[randomIndex] = true;
-
-    const row = Math.floor(randomIndex / gridCols);
-    const col = randomIndex % gridCols;
     const x = col * gridSize;
     const y = row * gridSize;
 
@@ -130,9 +124,19 @@ function revealSection() {
     );
 }
 
-// Event listener for reveal button
-revealButton.addEventListener('click', () => {
-    revealSection();
+// Function to handle canvas click events
+canvas.addEventListener('click', (event) => {
+    const rect = canvas.getBoundingClientRect();
+    const scaleX = canvas.width / rect.width;
+    const scaleY = canvas.height / rect.height;
+
+    const x = (event.clientX - rect.left) * scaleX;
+    const y = (event.clientY - rect.top) * scaleY;
+
+    const col = Math.floor(x / gridSize);
+    const row = Math.floor(y / gridSize);
+
+    revealSection(row, col);
 });
 
 // Function to calculate distance between two coordinates using Haversine formula
@@ -179,20 +183,17 @@ function getDirection(coord1, coord2) {
 submitGuessButton.addEventListener('click', () => {
     const userGuess = guessInput.value.trim().toLowerCase();
     if (userGuess === "") {
-        feedback.textContent = "Please enter a country.";
-        feedback.style.color = "red";
+        displayFeedback("Please enter a country.", "red");
         return;
     }
 
     if (!(userGuess in countries)) {
-        feedback.textContent = "Country not recognized. Please try another.";
-        feedback.style.color = "red";
+        displayFeedback("Country not recognized. Please try another.", "red");
         return;
     }
 
     if (userGuess === correctCountry) {
-        feedback.textContent = "🎉 Correct! You've guessed the country!";
-        feedback.style.color = "green";
+        displayFeedback("🎉 Correct! You've guessed the country!", "green");
     } else {
         // Calculate distance and direction
         const userCoord = countries[userGuess];
@@ -200,13 +201,32 @@ submitGuessButton.addEventListener('click', () => {
         const distance = Math.round(calculateDistance(userCoord, correctCoord));
         const direction = getDirection(userCoord, correctCoord);
 
-        feedback.textContent = `❌ Incorrect. You're ${distance} miles to the ${direction} of the correct country.`;
-        feedback.style.color = "red";
+        // Add directional arrow based on direction
+        const directionArrows = {
+            "North": "⬆️",
+            "Northeast": "↗️",
+            "East": "➡️",
+            "Southeast": "↘️",
+            "South": "⬇️",
+            "Southwest": "↙️",
+            "West": "⬅️",
+            "Northwest": "↖️"
+        };
+        const arrow = directionArrows[direction] || "";
+
+        displayFeedback(`❌ Incorrect. You're ${distance} miles to the ${direction} of the correct country. ${arrow}`, "red");
     }
     guessInput.value = '';
 });
 
-// Display the country information
-window.onload = () => {
-    countryInfo.textContent = `Country: ${landmark.country}`;
-};
+// Function to display feedback with appropriate styling
+function displayFeedback(message, color) {
+    feedback.textContent = message;
+    if (color === "green") {
+        feedback.classList.remove("red");
+        feedback.classList.add("green");
+    } else if (color === "red") {
+        feedback.classList.remove("green");
+        feedback.classList.add("red");
+    }
+}
