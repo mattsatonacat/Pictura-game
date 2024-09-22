@@ -23,6 +23,10 @@ const countries = {
     "finland": { lat: 61.9241, lng: 25.7482 },
     "ireland": { lat: 53.1424, lng: -7.6921 },
     "poland": { lat: 51.9194, lng: 19.1451 },
+    "united kingdom": { lat: 55.3781, lng: -3.4360 },
+    "canada": { lat: 56.1304, lng: -106.3468 },
+    "usa": { lat: 37.0902, lng: -95.7129 },
+    "mexico": { lat: 23.6345, lng: -102.5528 },
     // Add more countries as needed
 };
 
