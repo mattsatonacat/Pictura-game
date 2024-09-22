@@ -1,6 +1,32 @@
-// Define the landmark and image path
-const landmark = "Eiffel Tower"; // Correct answer
-const imagePath = "images/eiffel_tower.jpg"; // Path to the landmark image
+// Define the landmark details
+const landmark = {
+    name: "Eiffel Tower",
+    country: "France",
+    coordinates: { lat: 48.8584, lng: 2.2945 } // Eiffel Tower coordinates
+};
+
+// Sample country data with coordinates
+const countries = {
+    "france": { lat: 46.2276, lng: 2.2137 },
+    "germany": { lat: 51.1657, lng: 10.4515 },
+    "spain": { lat: 40.4637, lng: -3.7492 },
+    "italy": { lat: 41.8719, lng: 12.5674 },
+    "portugal": { lat: 39.3999, lng: -8.2245 },
+    "belgium": { lat: 50.5039, lng: 4.4699 },
+    "netherlands": { lat: 52.1326, lng: 5.2913 },
+    "switzerland": { lat: 46.8182, lng: 8.2275 },
+    "luxembourg": { lat: 49.8153, lng: 6.1296 },
+    "austria": { lat: 47.5162, lng: 14.5501 },
+    "norway": { lat: 60.4720, lng: 8.4689 },
+    "sweden": { lat: 60.1282, lng: 18.6435 },
+    "denmark": { lat: 56.2639, lng: 9.5018 },
+    "finland": { lat: 61.9241, lng: 25.7482 },
+    "ireland": { lat: 53.1424, lng: -7.6921 },
+    "poland": { lat: 51.9194, lng: 19.1451 },
+    // Add more countries as needed
+};
+
+const correctCountry = landmark.country.toLowerCase();
 
 const canvas = document.getElementById('picturaCanvas');
 const ctx = canvas.getContext('2d');
@@ -8,18 +34,20 @@ const revealButton = document.getElementById('revealButton');
 const submitGuessButton = document.getElementById('submitGuess');
 const guessInput = document.getElementById('guessInput');
 const feedback = document.getElementById('feedback');
+const countryInfo = document.getElementById('countryInfo');
 
 // Grid configuration
-const gridRows = 10;
-const gridCols = 10;
-const gridSize = 50; // Size of each grid section in pixels
+const gridRows = 3;
+const gridCols = 3;
+const gridSize = canvas.width / gridCols; // Adjust grid size based on canvas width
 
 // Track revealed sections
 let revealedSections = Array(gridRows * gridCols).fill(false);
 
 // Load and pixelate the image
 const img = new Image();
-img.src = imagePath;
+img.src = "images/eiffel_tower.jpg"; // Path to the landmark image
+img.crossOrigin = "Anonymous"; // To avoid CORS issues if needed
 img.onload = () => {
     // Draw the original image
     ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
@@ -103,15 +131,78 @@ revealButton.addEventListener('click', () => {
     revealSection();
 });
 
+// Function to calculate distance between two coordinates using Haversine formula
+function calculateDistance(coord1, coord2) {
+    const toRadians = (degrees) => degrees * (Math.PI / 180);
+    const R = 3958.8; // Radius of Earth in miles
+    const dLat = toRadians(coord2.lat - coord1.lat);
+    const dLon = toRadians(coord2.lng - coord1.lng);
+    const lat1 = toRadians(coord1.lat);
+    const lat2 = toRadians(coord2.lat);
+
+    const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+              Math.sin(dLon / 2) * Math.sin(dLon / 2) * Math.cos(lat1) * Math.cos(lat2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return R * c;
+}
+
+// Function to determine direction from guess to correct country
+function getDirection(coord1, coord2) {
+    const dy = coord2.lat - coord1.lat;
+    const dx = coord2.lng - coord1.lng;
+    const angle = Math.atan2(dy, dx) * (180 / Math.PI);
+    const directions = [
+        { min: -22.5, max: 22.5, direction: "East" },
+        { min: 22.5, max: 67.5, direction: "Northeast" },
+        { min: 67.5, max: 112.5, direction: "North" },
+        { min: 112.5, max: 157.5, direction: "Northwest" },
+        { min: 157.5, max: 180, direction: "West" },
+        { min: -180, max: -157.5, direction: "West" },
+        { min: -157.5, max: -112.5, direction: "Southwest" },
+        { min: -112.5, max: -67.5, direction: "South" },
+        { min: -67.5, max: -22.5, direction: "Southeast" },
+    ];
+
+    for (let dir of directions) {
+        if (angle > dir.min && angle <= dir.max) {
+            return dir.direction;
+        }
+    }
+    return "East"; // Default direction
+}
+
 // Event listener for guess submission
 submitGuessButton.addEventListener('click', () => {
     const userGuess = guessInput.value.trim().toLowerCase();
-    if (userGuess === landmark.toLowerCase()) {
-        feedback.textContent = "🎉 Correct! You've guessed the landmark!";
+    if (userGuess === "") {
+        feedback.textContent = "Please enter a country.";
+        feedback.style.color = "red";
+        return;
+    }
+
+    if (!(userGuess in countries)) {
+        feedback.textContent = "Country not recognized. Please try another.";
+        feedback.style.color = "red";
+        return;
+    }
+
+    if (userGuess === correctCountry) {
+        feedback.textContent = "🎉 Correct! You've guessed the country!";
         feedback.style.color = "green";
     } else {
-        feedback.textContent = "❌ Incorrect. Try again!";
+        // Calculate distance and direction
+        const userCoord = countries[userGuess];
+        const correctCoord = countries[correctCountry];
+        const distance = Math.round(calculateDistance(userCoord, correctCoord));
+        const direction = getDirection(userCoord, correctCoord);
+
+        feedback.textContent = `❌ Incorrect. You're ${distance} miles to the ${direction} of the correct country.`;
         feedback.style.color = "red";
     }
     guessInput.value = '';
 });
+
+// Display the country information
+window.onload = () => {
+    countryInfo.textContent = `Country: ${landmark.country}`;
+};
