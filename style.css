@@ -1,0 +1,42 @@
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f0f2f5;
+    text-align: center;
+    padding: 20px;
+}
+
+.container {
+    max-width: 600px;
+    margin: auto;
+    background-color: #fff;
+    padding: 20px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+#picturaCanvas {
+    border: 2px solid #333;
+    margin-bottom: 20px;
+}
+
+.controls, .guess-section {
+    margin: 10px 0;
+}
+
+button {
+    padding: 10px 20px;
+    margin: 5px;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+#guessInput {
+    padding: 10px;
+    width: 70%;
+    font-size: 16px;
+}
+
+#feedback {
+    margin-top: 20px;
+    font-size: 18px;
+    font-weight: bold;
+}
